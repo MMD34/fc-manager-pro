@@ -7,14 +7,15 @@ import { Users, TrendingUp, Star, Award } from 'lucide-react'
 
 export default function CareerOverview() {
   const { careerId } = useParams()
-  const { currentCareer } = useCareerStore()
+  const { currentCareer, fetchCareerById } = useCareerStore()
   const { players, fetchPlayers } = usePlayerStore()
 
   useEffect(() => {
     if (careerId) {
+      fetchCareerById(careerId)
       fetchPlayers(careerId)
     }
-  }, [careerId, fetchPlayers])
+  }, [careerId, fetchCareerById, fetchPlayers])
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -27,7 +28,7 @@ export default function CareerOverview() {
       : 0
 
     const playersWithManyPlayStyles = players.filter(
-      (p) => (p.play_styles?.split(',').length || 0) >= 7
+      (p) => (p.play_styles || 0) >= 7
     ).length
 
     return {

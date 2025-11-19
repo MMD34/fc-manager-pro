@@ -14,6 +14,9 @@ import Dashboard from '@/pages/dashboard/Dashboard'
 // Career Pages
 import CareerOverview from '@/pages/career/CareerOverview'
 import Squad from '@/pages/career/Squad'
+import Transfers from '@/pages/career/Transfers'
+import Finances from '@/pages/career/Finances'
+import Journal from '@/pages/career/Journal'
 
 // Layout
 import Layout from '@/components/layout/Layout'
@@ -70,10 +73,9 @@ function App() {
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<CareerOverview />} />
           <Route path="squad" element={<Squad />} />
-          {/* Placeholder routes for future features */}
-          <Route path="transfers" element={<div className="p-6">Transfers - Coming Soon</div>} />
-          <Route path="finances" element={<div className="p-6">Finances - Coming Soon</div>} />
-          <Route path="journal" element={<div className="p-6">Journal - Coming Soon</div>} />
+          <Route path="transfers" element={<Transfers />} />
+          <Route path="finances" element={<Finances />} />
+          <Route path="journal" element={<Journal />} />
         </Route>
 
         {/* Catch all */}

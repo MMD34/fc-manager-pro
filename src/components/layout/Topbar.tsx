@@ -9,9 +9,9 @@ import { Button } from '@/components/common/Button'
 export default function Topbar() {
   const { careerId } = useParams()
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const { darkMode, toggleDarkMode } = useUIStore()
-  const { careers, fetchCareers, currentCareer, setCurrentCareer } = useCareerStore()
+  const { user, signOut } = useAuth()
+  const { theme, toggleTheme } = useUIStore()
+  const { careers, fetchCareers, currentCareer, setActiveCareer } = useCareerStore()
   const [isCareerMenuOpen, setIsCareerMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -23,10 +23,10 @@ export default function Topbar() {
     if (careerId) {
       const career = careers.find((c) => c.id === careerId)
       if (career) {
-        setCurrentCareer(career)
+        setActiveCareer(career)
       }
     }
-  }, [careerId, careers, setCurrentCareer])
+  }, [careerId, careers, setActiveCareer])
 
   const handleCareerChange = (newCareerId: string) => {
     navigate(`/career/${newCareerId}/overview`)
@@ -34,7 +34,7 @@ export default function Topbar() {
   }
 
   const handleLogout = () => {
-    logout()
+    signOut()
     navigate('/login')
   }
 
@@ -86,10 +86,10 @@ export default function Topbar() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={toggleDarkMode}
+          onClick={toggleTheme}
           className="w-9 h-9 p-0"
         >
-          {darkMode ? (
+          {theme === 'dark' ? (
             <Sun className="w-5 h-5" />
           ) : (
             <Moon className="w-5 h-5" />
@@ -103,10 +103,10 @@ export default function Topbar() {
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-              {user?.username?.[0]?.toUpperCase() || 'U'}
+              {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {user?.username}
+              {user?.displayName || user?.email}
             </span>
             <ChevronDown className="w-4 h-4 text-gray-500" />
           </button>

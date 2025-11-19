@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,20 +11,18 @@ const playerSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   position: z.string().min(1, 'Position is required'),
-  ovr: z.coerce.number().min(40, 'Min 40').max(99, 'Max 99'),
-  potential: z.coerce.number().min(40, 'Min 40').max(99, 'Max 99'),
-  age: z.coerce.number().min(16, 'Min 16').max(45, 'Max 45'),
+  ovr: z.number().min(40, 'Min 40').max(99, 'Max 99'),
+  potential: z.number().min(40, 'Min 40').max(99, 'Max 99'),
+  age: z.number().min(16, 'Min 16').max(45, 'Max 45'),
   origin: z.enum(['Académie', 'Initial', 'Acheté']),
   status: z.enum(['Titulaire', 'Remplaçant', 'Réserve', 'À vendre', 'Prêt']),
-  salary: z.coerce.number().min(0, 'Must be positive'),
-  value: z.coerce.number().min(0, 'Must be positive'),
-  contract_years: z.coerce.number().min(0).max(10),
+  salary: z.number().min(0, 'Must be positive'),
+  value: z.number().min(0, 'Must be positive'),
   nationality: z.string().optional(),
-  weak_foot: z.coerce.number().min(1).max(5).optional(),
-  skill_moves: z.coerce.number().min(1).max(5).optional(),
-  work_rate_att: z.string().optional(),
-  work_rate_def: z.string().optional(),
-  play_styles: z.string().optional(),
+  play_styles: z.number().min(0).optional(),
+  play_styles_plus: z.number().min(0).optional(),
+  jersey_number: z.number().min(1).max(99).optional(),
+  contract_expiry: z.string().optional(),
   notes: z.string().optional(),
 })
 
@@ -60,13 +57,11 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
           status: player.status,
           salary: player.salary || 0,
           value: player.value || 0,
-          contract_years: player.contract_years || 0,
           nationality: player.nationality || '',
-          weak_foot: player.weak_foot || 3,
-          skill_moves: player.skill_moves || 3,
-          work_rate_att: player.work_rate_att || '',
-          work_rate_def: player.work_rate_def || '',
-          play_styles: player.play_styles || '',
+          play_styles: player.play_styles || 0,
+          play_styles_plus: player.play_styles_plus || 0,
+          jersey_number: player.jersey_number || undefined,
+          contract_expiry: player.contract_expiry || '',
           notes: player.notes || '',
         }
       : {
@@ -80,13 +75,11 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
           status: 'Remplaçant',
           salary: 0,
           value: 0,
-          contract_years: 3,
           nationality: '',
-          weak_foot: 3,
-          skill_moves: 3,
-          work_rate_att: 'Medium',
-          work_rate_def: 'Medium',
-          play_styles: '',
+          play_styles: 0,
+          play_styles_plus: 0,
+          jersey_number: undefined,
+          contract_expiry: '',
           notes: '',
         },
   })
@@ -96,10 +89,7 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
       if (isEditing && player) {
         await updatePlayer(player.id, data)
       } else {
-        await createPlayer({
-          ...data,
-          career_id: careerId,
-        })
+        await createPlayer(careerId, data)
       }
       reset()
       onClose()
@@ -172,7 +162,7 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Age *
                 </label>
-                <Input type="number" {...register('age')} />
+                <Input type="number" {...register('age', { valueAsNumber: true })} />
                 {errors.age && (
                   <p className="text-red-500 text-xs mt-1">{errors.age.message}</p>
                 )}
@@ -187,7 +177,7 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Overall (OVR) *
                 </label>
-                <Input type="number" {...register('ovr')} />
+                <Input type="number" {...register('ovr', { valueAsNumber: true })} />
                 {errors.ovr && (
                   <p className="text-red-500 text-xs mt-1">{errors.ovr.message}</p>
                 )}
@@ -197,59 +187,31 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Potential *
                 </label>
-                <Input type="number" {...register('potential')} />
+                <Input type="number" {...register('potential', { valueAsNumber: true })} />
                 {errors.potential && (
                   <p className="text-red-500 text-xs mt-1">{errors.potential.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Weak Foot (1-5)
-                </label>
-                <Input type="number" {...register('weak_foot')} />
-                {errors.weak_foot && (
-                  <p className="text-red-500 text-xs mt-1">{errors.weak_foot.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Skill Moves (1-5)
-                </label>
-                <Input type="number" {...register('skill_moves')} />
-                {errors.skill_moves && (
-                  <p className="text-red-500 text-xs mt-1">{errors.skill_moves.message}</p>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Work Rate (ATT)
+                    Play Styles
                   </label>
-                  <select
-                    {...register('work_rate_att')}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                  </select>
+                  <Input type="number" {...register('play_styles', { valueAsNumber: true })} />
+                  {errors.play_styles && (
+                    <p className="text-red-500 text-xs mt-1">{errors.play_styles.message}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Work Rate (DEF)
+                    Play Styles Plus
                   </label>
-                  <select
-                    {...register('work_rate_def')}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                  </select>
+                  <Input type="number" {...register('play_styles_plus', { valueAsNumber: true })} />
+                  {errors.play_styles_plus && (
+                    <p className="text-red-500 text-xs mt-1">{errors.play_styles_plus.message}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -300,7 +262,7 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Salary
                 </label>
-                <Input type="number" {...register('salary')} placeholder="0" />
+                <Input type="number" {...register('salary', { valueAsNumber: true })} placeholder="0" />
                 {errors.salary && (
                   <p className="text-red-500 text-xs mt-1">{errors.salary.message}</p>
                 )}
@@ -310,7 +272,7 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Market Value
                 </label>
-                <Input type="number" {...register('value')} placeholder="0" />
+                <Input type="number" {...register('value', { valueAsNumber: true })} placeholder="0" />
                 {errors.value && (
                   <p className="text-red-500 text-xs mt-1">{errors.value.message}</p>
                 )}
@@ -318,12 +280,24 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Contract Years
+                  Jersey Number
                 </label>
-                <Input type="number" {...register('contract_years')} />
-                {errors.contract_years && (
+                <Input type="number" {...register('jersey_number', { valueAsNumber: true })} placeholder="1-99" />
+                {errors.jersey_number && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.contract_years.message}
+                    {errors.jersey_number.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Contract Expiry
+                </label>
+                <Input type="date" {...register('contract_expiry')} />
+                {errors.contract_expiry && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.contract_expiry.message}
                   </p>
                 )}
               </div>
@@ -334,19 +308,6 @@ export default function PlayerModal({ careerId, player, onClose }: PlayerModalPr
               <h3 className="font-semibold text-gray-900 dark:text-white">
                 Additional Information
               </h3>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Play Styles
-                </label>
-                <Input
-                  {...register('play_styles')}
-                  placeholder="e.g., Finesse Shot, Power Header"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Comma-separated list of play styles
-                </p>
-              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
