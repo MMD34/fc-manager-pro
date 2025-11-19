@@ -7,8 +7,11 @@ export interface Career {
   club_id?: string | null
   league_name: string
   country: string
+  manager_name: string
   project_type: ProjectType
   current_season: number
+  budget: number
+  difficulty: string
   start_date: string
   is_active: boolean
   is_archived: boolean
@@ -20,8 +23,12 @@ export interface Career {
 export interface CreateCareerInput {
   club_name: string
   league_name: string
-  country: string
-  project_type: ProjectType
+  country?: string
+  manager_name: string
+  project_type?: ProjectType
+  current_season?: number
+  budget?: number
+  difficulty?: string
 }
 
 export interface UpdateCareerInput {

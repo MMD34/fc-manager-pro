@@ -5,17 +5,20 @@ import type { Career, CreateCareerInput, UpdateCareerInput } from '@/types/caree
 interface CareerState {
   careers: Career[]
   activeCareer: Career | null
+  currentCareer: Career | null
   loading: boolean
   fetchCareers: () => Promise<void>
   createCareer: (input: CreateCareerInput) => Promise<Career>
   updateCareer: (id: string, input: UpdateCareerInput) => Promise<void>
   deleteCareer: (id: string) => Promise<void>
   setActiveCareer: (career: Career | null) => void
+  fetchCareerById: (id: string) => Promise<void>
 }
 
-export const useCareerStore = create<CareerState>((set, get) => ({
+export const useCareerStore = create<CareerState>((set) => ({
   careers: [],
   activeCareer: null,
+  currentCareer: null,
   loading: false,
 
   fetchCareers: async () => {
@@ -102,6 +105,24 @@ export const useCareerStore = create<CareerState>((set, get) => ({
   },
 
   setActiveCareer: (career: Career | null) => {
-    set({ activeCareer: career })
+    set({ activeCareer: career, currentCareer: career })
+  },
+
+  fetchCareerById: async (id: string) => {
+    set({ loading: true })
+    try {
+      const { data, error } = await supabase
+        .from('careers')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) throw error
+      set({ currentCareer: data, activeCareer: data, loading: false })
+    } catch (error) {
+      console.error('Error fetching career:', error)
+      set({ loading: false })
+      throw error
+    }
   },
 }))
