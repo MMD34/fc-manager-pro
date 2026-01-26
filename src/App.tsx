@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import PublicOnlyRoute from '@/components/auth/PublicOnlyRoute'
+import AppShell from '@/components/layout/AppShell'
 
 // Auth Pages
 import Login from '@/pages/auth/Login'
@@ -63,7 +64,9 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <AppShell>
+                <Dashboard />
+              </AppShell>
             </ProtectedRoute>
           }
         />

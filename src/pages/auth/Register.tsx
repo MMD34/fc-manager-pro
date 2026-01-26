@@ -3,10 +3,11 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Mail, Lock, User } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { Button } from '@/components/common/Button'
-import { Input } from '@/components/common/Input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/common/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Card } from '@/components/ui/Card'
 
 const registerSchema = z
   .object({
@@ -52,75 +53,80 @@ export default function Register() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl">Create Account</CardTitle>
-          <CardDescription>Get started with FC Manager Pro</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input
-              label="Display Name"
-              placeholder="John Doe"
-              error={errors.displayName?.message}
-              {...register('displayName')}
-            />
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              error={errors.email?.message}
-              {...register('email')}
-            />
-            <Input
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
-              error={errors.password?.message}
-              {...register('password')}
-            />
-            <Input
-              label="Confirm Password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
-              error={errors.confirmPassword?.message}
-              {...register('confirmPassword')}
-            />
-            <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={showPassword}
-                  onChange={(event) => setShowPassword(event.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                />
-                Show password
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={showConfirmPassword}
-                  onChange={(event) => setShowConfirmPassword(event.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-                />
-                Show confirm password
-              </label>
-            </div>
-            {authError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
-                {authError}
-              </div>
-            )}
-            <Button type="submit" className="w-full" isLoading={isSubmitting}>
-              Create Account
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Already have an account? </span>
-            <Link to="/login" className="text-primary-600 hover:underline">
-              Sign in
-            </Link>
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400">
+            <User className="h-6 w-6" />
           </div>
-        </CardContent>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Create your account</h1>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Join FC Manager Pro and track every season.</p>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Input
+            label="Display Name"
+            placeholder="John Doe"
+            icon={<User className="h-4 w-4" />}
+            error={errors.displayName?.message}
+            {...register('displayName')}
+          />
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            icon={<Mail className="h-4 w-4" />}
+            error={errors.email?.message}
+            {...register('email')}
+          />
+          <Input
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            icon={<Lock className="h-4 w-4" />}
+            error={errors.password?.message}
+            {...register('password')}
+          />
+          <Input
+            label="Confirm Password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            icon={<Lock className="h-4 w-4" />}
+            error={errors.confirmPassword?.message}
+            {...register('confirmPassword')}
+          />
+          <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={(event) => setShowPassword(event.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+              />
+              Show password
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={showConfirmPassword}
+                onChange={(event) => setShowConfirmPassword(event.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+              />
+              Show confirm password
+            </label>
+          </div>
+          {authError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+              {authError}
+            </div>
+          )}
+          <Button type="submit" className="w-full" isLoading={isSubmitting}>
+            Create Account
+          </Button>
+        </form>
+        <div className="mt-6 text-center text-sm">
+          <span className="text-gray-600 dark:text-gray-400">Already have an account? </span>
+          <Link to="/login" className="text-primary-600 hover:underline">
+            Sign in
+          </Link>
+        </div>
       </Card>
     </div>
   )

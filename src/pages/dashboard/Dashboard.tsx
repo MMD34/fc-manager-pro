@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Plus, FolderOpen } from 'lucide-react'
 import { useCareerStore } from '@/store/careerStore'
-import { Button } from '@/components/common/Button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/common/Card'
-import { Input } from '@/components/common/Input'
-import { Plus, X } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import PageHeader from '@/components/ui/PageHeader'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -29,7 +31,7 @@ export default function Dashboard() {
       ...formData,
       current_season: 1,
       budget: 10000000,
-      difficulty: 'Intermédiaire',
+      difficulty: 'IntermÃ©diaire',
     })
 
     if (newCareer) {
@@ -41,138 +43,109 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-gray-600 dark:text-gray-400">Loading careers...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="max-w-7xl mx-auto p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              My Careers
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage your FC Manager Pro careers
-            </p>
-          </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="My Careers"
+        subtitle="Manage your FC Manager Pro careers"
+        actions={
           <Button onClick={() => setShowModal(true)}>
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create Career
           </Button>
-        </div>
+        }
+      />
 
-        {careers.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              No careers yet. Create your first career to get started!
-            </p>
+      {careers.length === 0 ? (
+        <EmptyState
+          icon={<FolderOpen className="h-6 w-6" />}
+          title="No careers yet"
+          description="Create your first career to start tracking seasons, squads, and transfers."
+          action={
             <Button onClick={() => setShowModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Create Career
             </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {careers.map((career) => (
-              <Card
-                key={career.id}
-                onClick={() => navigate(`/career/${career.id}/overview`)}
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <CardTitle>{career.club_name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {career.league_name}
-                    </p>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Season</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {career.current_season}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Manager</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {career.manager_name}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {careers.map((career) => (
+            <Card
+              key={career.id}
+              onClick={() => navigate(`/career/${career.id}/overview`)}
+              className="cursor-pointer transition-shadow hover:shadow-lg"
+            >
+              <div className="space-y-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {career.club_name}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {career.league_name}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">Season</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {career.current_season}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">Manager</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {career.manager_name}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      {/* Create Career Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-900">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Create New Career
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                className="rounded-full px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
               >
-                <X className="w-5 h-5" />
+                ✕
               </button>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Club Name
-                </label>
-                <Input
-                  value={formData.club_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, club_name: e.target.value })
-                  }
-                  placeholder="e.g., Manchester United"
-                />
-              </div>
+              <Input
+                label="Club Name"
+                value={formData.club_name}
+                onChange={(e) => setFormData({ ...formData, club_name: e.target.value })}
+                placeholder="e.g., Manchester United"
+              />
+              <Input
+                label="League Name"
+                value={formData.league_name}
+                onChange={(e) => setFormData({ ...formData, league_name: e.target.value })}
+                placeholder="e.g., Premier League"
+              />
+              <Input
+                label="Manager Name"
+                value={formData.manager_name}
+                onChange={(e) => setFormData({ ...formData, manager_name: e.target.value })}
+                placeholder="e.g., John Doe"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  League Name
-                </label>
-                <Input
-                  value={formData.league_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, league_name: e.target.value })
-                  }
-                  placeholder="e.g., Premier League"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Manager Name
-                </label>
-                <Input
-                  value={formData.manager_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, manager_name: e.target.value })
-                  }
-                  placeholder="e.g., John Doe"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1"
-                >
+              <div className="flex gap-3 pt-2">
+                <Button variant="ghost" onClick={() => setShowModal(false)} className="flex-1">
                   Cancel
                 </Button>
                 <Button onClick={handleCreateCareer} className="flex-1">
