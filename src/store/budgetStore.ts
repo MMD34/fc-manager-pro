@@ -1,5 +1,4 @@
-import { create } from 'zustand'
-import { supabase } from '@/lib/supabase'
+﻿import { create } from 'zustand'
 import type { BudgetEntry, UpdateBudgetInput } from '@/types/budget.types'
 
 interface BudgetState {
@@ -14,44 +13,13 @@ export const useBudgetStore = create<BudgetState>((set) => ({
   budgetEntries: [],
   loading: false,
 
-  fetchBudgetEntries: async (careerId: string) => {
+  fetchBudgetEntries: async (_careerId: string) => {
     set({ loading: true })
-    try {
-      const { data, error } = await supabase
-        .from('budget_entries')
-        .select('*')
-        .eq('career_id', careerId)
-        .order('season', { ascending: true })
-
-      if (error) throw error
-      set({ budgetEntries: data || [], loading: false })
-    } catch (error) {
-      console.error('Error fetching budget entries:', error)
-      set({ loading: false })
-      throw error
-    }
+    set({ budgetEntries: [], loading: false })
   },
 
-  updateBudgetEntry: async (id: string, input: UpdateBudgetInput) => {
-    try {
-      const { data, error } = await supabase
-        .from('budget_entries')
-        .update(input)
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) throw error
-
-      set((state) => ({
-        budgetEntries: state.budgetEntries.map((entry) =>
-          entry.id === id ? data : entry
-        ),
-      }))
-    } catch (error) {
-      console.error('Error updating budget entry:', error)
-      throw error
-    }
+  updateBudgetEntry: async (_id: string, _input: UpdateBudgetInput) => {
+    throw new Error('Not implemented yet: Budget store will be migrated to Firestore next.')
   },
 
   calculateBalance: (entry: BudgetEntry) => {
