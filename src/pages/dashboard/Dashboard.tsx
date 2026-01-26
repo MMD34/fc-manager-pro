@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import PageHeader from '@/components/ui/PageHeader'
 import EmptyState from '@/components/ui/EmptyState'
+import { APP_NAME } from '@/config/branding'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -53,7 +54,7 @@ export default function Dashboard() {
     <div className="space-y-8">
       <PageHeader
         title="My Careers"
-        subtitle="Manage your FC Manager Pro careers"
+        subtitle={`Manage your ${APP_NAME} careers`}
         actions={
           <Button onClick={() => setShowModal(true)}>
             <Plus className="mr-2 h-4 w-4" />

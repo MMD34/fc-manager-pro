@@ -9,9 +9,6 @@ interface AppBackgroundProps {
 export default function AppBackground({ children, className }: AppBackgroundProps) {
   return (
     <div className={cn('relative min-h-screen bg-slate-950 text-slate-100 antialiased', className)}>
-      <div className="fixed top-2 left-2 z-[9999] rounded-xl bg-fuchsia-600 px-3 py-2 text-white shadow-lg">
-        THEME ACTIVE
-      </div>
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-slate-950" />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950" />

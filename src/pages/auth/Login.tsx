@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
+import { APP_NAME } from '@/config/branding'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -50,7 +51,7 @@ export default function Login() {
             <Mail className="h-6 w-6" />
           </div>
           <h1 className="text-2xl font-semibold text-slate-100">Welcome back</h1>
-          <p className="mt-2 text-sm text-slate-300">Sign in to continue managing your careers.</p>
+          <p className="mt-2 text-sm text-slate-300">Sign in to continue managing your {APP_NAME} careers.</p>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input

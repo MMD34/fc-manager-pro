@@ -1,6 +1,7 @@
 ﻿import { Link, useLocation } from 'react-router-dom'
 import { Home, Users, ArrowRightLeft, DollarSign, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { APP_NAME } from '@/config/branding'
 
 interface SidebarProps {
   careerId: string
@@ -20,7 +21,7 @@ export default function Sidebar({ careerId }: SidebarProps) {
   return (
     <aside className="w-64 border-r border-white/10 bg-slate-950/40 backdrop-blur-xl flex flex-col">
       <div className="p-6 border-b border-white/10">
-        <h1 className="text-xl font-bold text-slate-100">FC Manager Pro</h1>
+        <h1 className="text-xl font-bold text-slate-100 truncate">{APP_NAME}</h1>
       </div>
 
       <nav className="flex-1 p-4">

@@ -4,6 +4,7 @@ import { LogOut, User } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import Container from '@/components/ui/Container'
+import { APP_NAME } from '@/config/branding'
 
 interface AppShellProps {
   children: ReactNode
@@ -27,11 +28,11 @@ export default function AppShell({ children, header, fullWidth = false }: AppShe
       ) : (
         <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/40 backdrop-blur-xl">
           <Container className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2 font-semibold text-slate-100">
+            <div className="flex min-w-0 items-center gap-2 font-semibold text-slate-100">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/90 text-white shadow-sm shadow-indigo-500/30">
                 FC
               </span>
-              FC Manager Pro
+              <span className="truncate">{APP_NAME}</span>
             </div>
             {user && (
               <div className="flex items-center gap-3">
