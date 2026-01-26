@@ -4,7 +4,6 @@ import { LogOut, User } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import Container from '@/components/ui/Container'
-import AppBackground from '@/components/layout/AppBackground'
 
 interface AppShellProps {
   children: ReactNode
@@ -22,7 +21,7 @@ export default function AppShell({ children, header, fullWidth = false }: AppShe
   }
 
   return (
-    <AppBackground>
+    <>
       {header ? (
         header
       ) : (
@@ -52,6 +51,6 @@ export default function AppShell({ children, header, fullWidth = false }: AppShe
       <main className={fullWidth ? 'flex-1' : 'py-8'}>
         {fullWidth ? children : <Container>{children}</Container>}
       </main>
-    </AppBackground>
+    </>
   )
 }

@@ -6,6 +6,7 @@ import { useUIStore } from '@/store/uiStore'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import PublicOnlyRoute from '@/components/auth/PublicOnlyRoute'
 import AppShell from '@/components/layout/AppShell'
+import AppBackground from '@/components/layout/AppBackground'
 
 // Auth Pages
 import Login from '@/pages/auth/Login'
@@ -38,74 +39,76 @@ function App() {
   }, [theme, setTheme])
 
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" />
-      <Routes>
-        {/* Public Routes */}
-        <Route
-          path="/login"
-          element={
-            <PublicOnlyRoute>
-              <Login />
-            </PublicOnlyRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicOnlyRoute>
-              <Register />
-            </PublicOnlyRoute>
-          }
-        />
+    <AppBackground>
+      <BrowserRouter>
+        <Toaster position="top-right" />
+        <Routes>
+          {/* Public Routes */}
+          <Route
+            path="/login"
+            element={
+              <PublicOnlyRoute>
+                <Login />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicOnlyRoute>
+                <Register />
+              </PublicOnlyRoute>
+            }
+          />
 
-        {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <AppShell>
-                <Dashboard />
-              </AppShell>
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <Dashboard />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Career Routes (with layout) */}
-        <Route
-          path="/career/:careerId"
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<CareerOverview />} />
-          <Route path="squad" element={<Squad />} />
-          <Route path="transfers" element={<Transfers />} />
-          <Route path="finances" element={<Finances />} />
-          <Route path="journal" element={<Journal />} />
-        </Route>
+          {/* Career Routes (with layout) */}
+          <Route
+            path="/career/:careerId"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="overview" replace />} />
+            <Route path="overview" element={<CareerOverview />} />
+            <Route path="squad" element={<Squad />} />
+            <Route path="transfers" element={<Transfers />} />
+            <Route path="finances" element={<Finances />} />
+            <Route path="journal" element={<Journal />} />
+          </Route>
 
-        {/* Catch all */}
-        <Route
-          path="*"
-          element={
-            isLoading ? (
-              <div className="flex h-screen items-center justify-center bg-slate-950">
-                <div className="text-center">
-                  <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-indigo-400 border-t-transparent"></div>
-                  <p className="text-slate-300">Loading...</p>
+          {/* Catch all */}
+          <Route
+            path="*"
+            element={
+              isLoading ? (
+                <div className="flex h-screen items-center justify-center bg-slate-950">
+                  <div className="text-center">
+                    <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-indigo-400 border-t-transparent"></div>
+                    <p className="text-slate-300">Loading...</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <Navigate to={user ? "/dashboard" : "/login"} replace />
-            )
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+              ) : (
+                <Navigate to={user ? "/dashboard" : "/login"} replace />
+              )
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AppBackground>
   )
 }
 
