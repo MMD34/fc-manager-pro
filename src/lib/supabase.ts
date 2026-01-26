@@ -1,39 +1,76 @@
-import { createClient } from '@supabase/supabase-js'
+type SupabaseError = Error
 
-// Get environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-// Validate environment variables
-if (!supabaseUrl) {
-  throw new Error('Missing VITE_SUPABASE_URL environment variable')
+type SupabaseResponse<T> = {
+  data: T
+  error: SupabaseError | null
 }
 
-if (!supabaseAnonKey) {
-  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable')
+type AuthSession = {
+  user: null
 }
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+type AuthUser = {
+  id: string
+  email: string
+  user_metadata?: Record<string, string>
+}
+
+interface QueryBuilder<T> extends PromiseLike<SupabaseResponse<T>> {
+  select: (...args: unknown[]) => QueryBuilder<unknown>
+  insert: (...args: unknown[]) => QueryBuilder<unknown>
+  update: (...args: unknown[]) => QueryBuilder<unknown>
+  delete: (...args: unknown[]) => QueryBuilder<unknown>
+  order: (...args: unknown[]) => QueryBuilder<unknown>
+  eq: (...args: unknown[]) => QueryBuilder<unknown>
+  single: () => QueryBuilder<unknown>
+}
+
+const disabledError = (action: string) =>
+  new Error(`Supabase is disabled. Firebase is the active backend (${action}).`)
+
+const createDisabledQuery = (): QueryBuilder<unknown> => {
+  const result: SupabaseResponse<unknown> = {
+    data: null,
+    error: disabledError('query'),
+  }
+
+  const builder: QueryBuilder<unknown> = {
+    select: () => builder,
+    insert: () => builder,
+    update: () => builder,
+    delete: () => builder,
+    order: () => builder,
+    eq: () => builder,
+    single: () => builder,
+    then: (onfulfilled, onrejected) =>
+      Promise.resolve(result).then(onfulfilled, onrejected),
+  }
+
+  return builder
+}
+
+export const supabase = {
   auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
+    getSession: async (): Promise<SupabaseResponse<{ session: AuthSession | null }>> => ({
+      data: { session: null },
+      error: null,
+    }),
+    getUser: async (): Promise<SupabaseResponse<{ user: AuthUser | null }>> => ({
+      data: { user: null },
+      error: null,
+    }),
+    signInWithPassword: async (): Promise<SupabaseResponse<{ user: AuthUser | null }>> => ({
+      data: { user: null },
+      error: disabledError('auth.signInWithPassword'),
+    }),
+    signUp: async (): Promise<SupabaseResponse<{ user: AuthUser | null }>> => ({
+      data: { user: null },
+      error: disabledError('auth.signUp'),
+    }),
+    signOut: async (): Promise<SupabaseResponse<null>> => ({
+      data: null,
+      error: disabledError('auth.signOut'),
+    }),
   },
-})
-
-// Helper function to check if user is authenticated
-export const isAuthenticated = async () => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  return !!session
-}
-
-// Helper function to get current user
-export const getCurrentUser = async () => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user
+  from: () => createDisabledQuery(),
 }

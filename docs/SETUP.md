@@ -1,4 +1,4 @@
-# 🛠️ Setup Guide - FC Manager Pro
+﻿# 🛠️ Setup Guide - FC Manager Pro
 
 Complete installation and configuration guide for the FC Manager Pro project.
 
@@ -9,7 +9,7 @@ Before starting, ensure you have:
 - **npm** or **yarn** package manager
 - **Git** installed
 - **VS Code** (recommended) or any code editor
-- **Supabase account** ([Sign up](https://supabase.com/))
+- **Firebase account** ([Sign up](https://firebase.google.com/))
 
 ## 📦 Initial Project Setup
 
@@ -30,43 +30,46 @@ yarn install
 
 ### 3. Environment Variables
 
-Create a `.env.local` file in the root directory:
+Create a `.env.local` file in the root directory (copy from `.env.example`):
 
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 
 # Optional: For development
 VITE_APP_ENV=development
 ```
 
-**How to get Supabase credentials:**
-1. Go to [Supabase Dashboard](https://app.supabase.com/)
-2. Select your project (or create one)
-3. Go to Settings → API
-4. Copy `Project URL` → Use as `VITE_SUPABASE_URL`
-5. Copy `anon` `public` key → Use as `VITE_SUPABASE_ANON_KEY`
+**How to get Firebase web config:**
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a project (or select an existing one)
+3. In Project settings → General, add a Web app
+4. Copy the Firebase config values into `.env.local`
 
-### 4. Supabase Setup
+### 4. Firebase Setup
 
-#### A. Create Supabase Project
+#### A. Create Firebase Project
 
-1. Go to https://app.supabase.com/
-2. Click "New Project"
+1. Go to https://console.firebase.google.com/
+2. Click "Add project"
 3. Choose a name (e.g., "fc-manager-pro")
-4. Set a strong database password (save it!)
-5. Select a region close to you
-6. Click "Create new project" (takes ~2 minutes)
+4. Follow the setup steps
 
-#### B. Run Database Migrations
+#### B. Enable Email/Password Auth
 
-After the project is created, go to SQL Editor in Supabase dashboard and run the initial schema:
+1. Open Authentication → Sign-in method
+2. Enable **Email/Password**
+3. Save changes
 
-```sql
--- This will be provided in docs/DATABASE_SCHEMA.md
--- For now, you'll create tables as you progress through Phase 1
-```
+#### C. Create Firestore Database
+
+1. Open Firestore Database → Create database
+2. Start in **test mode** for local development
+3. Choose a region close to you
 
 ### 5. Start Development Server
 
@@ -88,7 +91,7 @@ See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed architecture infor
 
 ## 🗄️ Database Schema
 
-See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for complete database design.
+See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) for the current data model (Supabase schema retained as historical reference).
 
 ## 🚀 Development Workflow
 
@@ -134,17 +137,17 @@ yarn preview
 
 ### Common Issues
 
-**Issue: "Cannot find module '@supabase/supabase-js'"**
-- Solution: Run `npm install @supabase/supabase-js`
+**Issue: "Cannot find module 'firebase'"**
+- Solution: Run `npm install`
 
-**Issue: "VITE_SUPABASE_URL is not defined"**
+**Issue: "Missing VITE_FIREBASE_API_KEY"**
 - Solution: Check your `.env.local` file exists and has correct values
 - Restart the dev server after adding env variables
 
-**Issue: Supabase connection fails**
-- Solution: Verify your Supabase project is active
-- Check the URL and anon key are correct
-- Ensure your IP is not blocked (check Supabase dashboard → Database → Connection pooling)
+**Issue: Firebase auth or Firestore fails**
+- Solution: Verify Auth Email/Password is enabled in Firebase Console
+- Ensure Firestore database is created
+- Double-check your Firebase web config values
 
 **Issue: TypeScript errors**
 - Solution: Run `npm run type-check` to see all errors
@@ -166,8 +169,8 @@ Once setup is complete:
 ## 🔐 Security Notes
 
 - Never commit `.env.local` to Git (it's in `.gitignore`)
-- Never share your Supabase service_role key publicly
-- Use Row Level Security (RLS) policies in Supabase for data protection
+- Only use the Firebase **web** config values in the client
+- Do not paste Firebase Admin SDK keys into the frontend
 - Always validate user input on both client and server
 
 ## 🎯 Ready to Start?

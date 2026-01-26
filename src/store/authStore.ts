@@ -1,78 +1,55 @@
 import { create } from 'zustand'
-import { supabase } from '@/lib/supabase'
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile,
+} from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 import type { AuthState, User } from '@/types/auth.types'
+
+const mapFirebaseUser = (user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }): User => ({
+  id: user.uid,
+  email: user.email ?? '',
+  displayName: user.displayName ?? undefined,
+  avatarUrl: user.photoURL ?? undefined,
+})
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
 
   checkAuth: async () => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (session?.user) {
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email!,
-          displayName: session.user.user_metadata?.display_name,
-          avatarUrl: session.user.user_metadata?.avatar_url,
+    set({ loading: true })
+    await new Promise<void>((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+          set({ user: mapFirebaseUser(firebaseUser), loading: false })
+        } else {
+          set({ user: null, loading: false })
         }
-        set({ user, loading: false })
-      } else {
-        set({ user: null, loading: false })
-      }
-    } catch (error) {
-      console.error('Auth check error:', error)
-      set({ user: null, loading: false })
-    }
+        unsubscribe()
+        resolve()
+      })
+    })
   },
 
   signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) throw error
-
-    if (data.user) {
-      const user: User = {
-        id: data.user.id,
-        email: data.user.email!,
-        displayName: data.user.user_metadata?.display_name,
-        avatarUrl: data.user.user_metadata?.avatar_url,
-      }
-      set({ user })
-    }
+    const credential = await signInWithEmailAndPassword(auth, email, password)
+    set({ user: mapFirebaseUser(credential.user) })
   },
 
   signUp: async (email: string, password: string, displayName?: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName,
-        },
-      },
-    })
-
-    if (error) throw error
-
-    if (data.user) {
-      const user: User = {
-        id: data.user.id,
-        email: data.user.email!,
-        displayName: displayName,
-      }
-      set({ user })
+    const credential = await createUserWithEmailAndPassword(auth, email, password)
+    if (displayName) {
+      await updateProfile(credential.user, { displayName })
     }
+    set({ user: mapFirebaseUser(credential.user) })
   },
 
   signOut: async () => {
-    await supabase.auth.signOut()
+    await firebaseSignOut(auth)
     set({ user: null })
   },
 }))

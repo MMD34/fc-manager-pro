@@ -1,6 +1,6 @@
 # ⚽ FC Manager Pro - Career Tracker for FC 26
 
-A modern, comprehensive web application to track and manage your FC 26 career mode, built with React, TypeScript, Tailwind CSS, and Supabase.
+A modern, comprehensive web application to track and manage your FC 26 career mode, built with React, TypeScript, Tailwind CSS, and Firebase.
 
 ## 🎯 Project Vision
 
@@ -26,11 +26,11 @@ FC Manager Pro is a complete career management tool that allows players to:
 - **Lucide React** for icons
 
 ### Backend
-- **Supabase** (PostgreSQL + Auth + Storage + Real-time)
+- **Firebase** (Auth + Firestore)
 
 ### Deployment
 - **Vercel** (Frontend)
-- **Supabase Cloud** (Backend)
+- **Firebase** (Backend)
 
 ## 📁 Project Structure
 
@@ -55,7 +55,7 @@ fc-manager-pro/
 │   ├── types/             # TypeScript types
 │   └── assets/            # Images, fonts, etc.
 ├── public/                # Static files
-└── supabase/             # Supabase migrations & functions
+└── supabase/             # Supabase migrations (historical)
 ```
 
 ## 🚀 Development Phases
@@ -101,6 +101,7 @@ The project is divided into 4 main phases:
 ## 📚 Documentation
 
 - **[Setup Guide](docs/SETUP.md)** - Complete installation instructions
+- **[Firebase Setup Guide](FIREBASE_SETUP_GUIDE.md)** - Firebase configuration steps
 - **[VS Code Setup](docs/VSCODE_SETUP.md)** - Extensions and configuration
 - **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Architecture details
 - **[Database Schema](docs/DATABASE_SCHEMA.md)** - Database design
@@ -130,3 +131,4 @@ For questions or suggestions, open an issue on GitHub.
 ---
 
 **Current Status:** Phase 1 in progress 🚧
+
