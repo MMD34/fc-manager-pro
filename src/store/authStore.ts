@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { FirebaseError } from 'firebase/app'
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -7,49 +8,82 @@ import {
   updateProfile,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import type { AuthState, User } from '@/types/auth.types'
+import type { AuthState } from '@/types/auth.types'
 
-const mapFirebaseUser = (user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }): User => ({
-  id: user.uid,
-  email: user.email ?? '',
-  displayName: user.displayName ?? undefined,
-  avatarUrl: user.photoURL ?? undefined,
-})
+const mapAuthError = (error: unknown): string => {
+  if (error instanceof FirebaseError) {
+    switch (error.code) {
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.'
+      case 'auth/user-not-found':
+        return 'No account found with this email.'
+      case 'auth/wrong-password':
+        return 'Incorrect password. Please try again.'
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists.'
+      case 'auth/weak-password':
+        return 'Password is too weak. Use at least 6 characters.'
+      case 'auth/too-many-requests':
+        return 'Too many attempts. Please try again later.'
+      default:
+        return 'Authentication failed. Please try again.'
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return 'Authentication failed. Please try again.'
+}
+
+let authListenerUnsubscribe: (() => void) | null = null
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  loading: true,
+  isLoading: true,
+  authError: null,
 
-  checkAuth: async () => {
-    set({ loading: true })
-    await new Promise<void>((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        if (firebaseUser) {
-          set({ user: mapFirebaseUser(firebaseUser), loading: false })
-        } else {
-          set({ user: null, loading: false })
-        }
-        unsubscribe()
-        resolve()
-      })
+  initAuthListener: () => {
+    if (authListenerUnsubscribe) {
+      return authListenerUnsubscribe
+    }
+
+    set({ isLoading: true })
+    authListenerUnsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      set({ user: firebaseUser, isLoading: false })
     })
+
+    return authListenerUnsubscribe
   },
 
   signIn: async (email: string, password: string) => {
-    const credential = await signInWithEmailAndPassword(auth, email, password)
-    set({ user: mapFirebaseUser(credential.user) })
+    set({ authError: null })
+    try {
+      const credential = await signInWithEmailAndPassword(auth, email, password)
+      set({ user: credential.user })
+    } catch (error) {
+      set({ authError: mapAuthError(error) })
+      throw error
+    }
   },
 
   signUp: async (email: string, password: string, displayName?: string) => {
-    const credential = await createUserWithEmailAndPassword(auth, email, password)
-    if (displayName) {
-      await updateProfile(credential.user, { displayName })
+    set({ authError: null })
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, email, password)
+      if (displayName) {
+        await updateProfile(credential.user, { displayName })
+      }
+      set({ user: credential.user })
+    } catch (error) {
+      set({ authError: mapAuthError(error) })
+      throw error
     }
-    set({ user: mapFirebaseUser(credential.user) })
   },
 
   signOut: async () => {
     await firebaseSignOut(auth)
-    set({ user: null })
+    set({ user: null, authError: null })
   },
 }))

@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { useUIStore } from '@/store/uiStore'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import PublicOnlyRoute from '@/components/auth/PublicOnlyRoute'
 
 // Auth Pages
 import Login from '@/pages/auth/Login'
@@ -22,28 +24,17 @@ import Journal from '@/pages/career/Journal'
 import Layout from '@/components/layout/Layout'
 
 function App() {
-  const { user, loading, checkAuth } = useAuth()
+  const { user, isLoading, initAuthListener } = useAuth()
   const { theme, setTheme } = useUIStore()
 
   useEffect(() => {
-    checkAuth()
-  }, [checkAuth])
+    initAuthListener()
+  }, [initAuthListener])
 
   useEffect(() => {
     // Apply theme on mount
     setTheme(theme)
   }, [theme, setTheme])
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <BrowserRouter>
@@ -52,23 +43,39 @@ function App() {
         {/* Public Routes */}
         <Route
           path="/login"
-          element={!user ? <Login /> : <Navigate to="/dashboard" replace />}
+          element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          }
         />
         <Route
           path="/register"
-          element={!user ? <Register /> : <Navigate to="/dashboard" replace />}
+          element={
+            <PublicOnlyRoute>
+              <Register />
+            </PublicOnlyRoute>
+          }
         />
 
         {/* Protected Routes */}
         <Route
           path="/dashboard"
-          element={user ? <Dashboard /> : <Navigate to="/login" replace />}
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
         />
 
         {/* Career Routes (with layout) */}
         <Route
           path="/career/:careerId"
-          element={user ? <Layout /> : <Navigate to="/login" replace />}
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
         >
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<CareerOverview />} />
@@ -79,7 +86,21 @@ function App() {
         </Route>
 
         {/* Catch all */}
-        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+        <Route
+          path="*"
+          element={
+            isLoading ? (
+              <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
+                <div className="text-center">
+                  <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary-600 border-t-transparent"></div>
+                  <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+                </div>
+              </div>
+            ) : (
+              <Navigate to={user ? "/dashboard" : "/login"} replace />
+            )
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/common/Card'
-import { toast } from 'sonner'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -18,8 +17,9 @@ type LoginForm = z.infer<typeof loginSchema>
 
 export default function Login() {
   const navigate = useNavigate()
-  const { signIn } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
+  const { signIn, authError } = useAuth()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -30,16 +30,14 @@ export default function Login() {
   })
 
   const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true)
+    setIsSubmitting(true)
     try {
       await signIn(data.email, data.password)
-      toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (error) {
-      console.error('Login error:', error)
-      toast.error('Invalid email or password')
+      // authError is set in the store
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -61,12 +59,26 @@ export default function Login() {
             />
             <Input
               label="Password"
-              type="password"
-              placeholder="••••••••"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               error={errors.password?.message}
               {...register('password')}
             />
-            <Button type="submit" className="w-full" isLoading={isLoading}>
+            <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={(event) => setShowPassword(event.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+              />
+              Show password
+            </label>
+            {authError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+                {authError}
+              </div>
+            )}
+            <Button type="submit" className="w-full" isLoading={isSubmitting}>
               Sign In
             </Button>
           </form>

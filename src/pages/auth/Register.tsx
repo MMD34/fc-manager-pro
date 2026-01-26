@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,24 +7,27 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/common/Card'
-import { toast } from 'sonner'
 
-const registerSchema = z.object({
-  displayName: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-})
+const registerSchema = z
+  .object({
+    displayName: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 
 type RegisterForm = z.infer<typeof registerSchema>
 
 export default function Register() {
   const navigate = useNavigate()
-  const { signUp } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
+  const { signUp, authError } = useAuth()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const {
     register,
@@ -35,17 +38,14 @@ export default function Register() {
   })
 
   const onSubmit = async (data: RegisterForm) => {
-    setIsLoading(true)
+    setIsSubmitting(true)
     try {
       await signUp(data.email, data.password, data.displayName)
-      toast.success('Account created successfully!')
       navigate('/dashboard')
-    } catch (error: unknown) {
-      console.error('Register error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create account'
-      toast.error(errorMessage)
+    } catch (error) {
+      // authError is set in the store
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -73,19 +73,44 @@ export default function Register() {
             />
             <Input
               label="Password"
-              type="password"
-              placeholder="••••••••"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               error={errors.password?.message}
               {...register('password')}
             />
             <Input
               label="Confirm Password"
-              type="password"
-              placeholder="••••••••"
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />
-            <Button type="submit" className="w-full" isLoading={isLoading}>
+            <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(event) => setShowPassword(event.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                />
+                Show password
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showConfirmPassword}
+                  onChange={(event) => setShowConfirmPassword(event.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                />
+                Show confirm password
+              </label>
+            </div>
+            {authError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+                {authError}
+              </div>
+            )}
+            <Button type="submit" className="w-full" isLoading={isSubmitting}>
               Create Account
             </Button>
           </form>
