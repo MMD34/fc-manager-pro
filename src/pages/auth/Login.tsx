@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
+import AppBackground from '@/components/layout/AppBackground'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -43,57 +44,59 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
-      <Card className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400">
-            <Mail className="h-6 w-6" />
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Welcome back</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Sign in to continue managing your careers.</p>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            icon={<Mail className="h-4 w-4" />}
-            error={errors.email?.message}
-            {...register('email')}
-          />
-          <Input
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
-            icon={<Lock className="h-4 w-4" />}
-            error={errors.password?.message}
-            {...register('password')}
-          />
-          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <input
-              type="checkbox"
-              checked={showPassword}
-              onChange={(event) => setShowPassword(event.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
-            />
-            Show password
-          </label>
-          {authError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
-              {authError}
+    <AppBackground>
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <Card className="w-full max-w-md">
+          <div className="mb-6 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-indigo-300">
+              <Mail className="h-6 w-6" />
             </div>
-          )}
-          <Button type="submit" className="w-full" isLoading={isSubmitting}>
-            Sign In
-          </Button>
-        </form>
-        <div className="mt-6 text-center text-sm">
-          <span className="text-gray-600 dark:text-gray-400">Don't have an account? </span>
-          <Link to="/register" className="text-primary-600 hover:underline">
-            Sign up
-          </Link>
-        </div>
-      </Card>
-    </div>
+            <h1 className="text-2xl font-semibold text-slate-100">Welcome back</h1>
+            <p className="mt-2 text-sm text-slate-300">Sign in to continue managing your careers.</p>
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Input
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+              icon={<Mail className="h-4 w-4" />}
+              error={errors.email?.message}
+              {...register('email')}
+            />
+            <Input
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              icon={<Lock className="h-4 w-4" />}
+              error={errors.password?.message}
+              {...register('password')}
+            />
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={showPassword}
+                onChange={(event) => setShowPassword(event.target.checked)}
+                className="h-4 w-4 rounded border-white/20 bg-transparent text-indigo-400 focus:ring-indigo-400/40"
+              />
+              Show password
+            </label>
+            {authError && (
+              <div className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                {authError}
+              </div>
+            )}
+            <Button type="submit" className="w-full" isLoading={isSubmitting}>
+              Sign In
+            </Button>
+          </form>
+          <div className="mt-6 text-center text-sm">
+            <span className="text-slate-300">Don't have an account? </span>
+            <Link to="/register" className="text-indigo-300 hover:text-indigo-200">
+              Sign up
+            </Link>
+          </div>
+        </Card>
+      </div>
+    </AppBackground>
   )
 }

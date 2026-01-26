@@ -18,9 +18,9 @@ export default function Sidebar({ careerId }: SidebarProps) {
   const location = useLocation()
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+    <aside className="w-64 border-r border-white/10 bg-slate-950/40 backdrop-blur-xl flex flex-col">
+      <div className="p-6 border-b border-white/10">
+        <h1 className="text-xl font-bold text-slate-100">
           FC Manager Pro
         </h1>
       </div>
@@ -39,8 +39,8 @@ export default function Sidebar({ careerId }: SidebarProps) {
                   className={cn(
                     'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
                     isActive
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      ? 'bg-indigo-500/15 text-indigo-200'
+                      : 'text-slate-300 hover:bg-white/5'
                   )}
                 >
                   <Icon className="w-5 h-5" />

@@ -44,7 +44,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-gray-600 dark:text-gray-400">Loading careers...</div>
+        <div className="text-slate-300">Loading careers...</div>
       </div>
     )
   }
@@ -80,26 +80,24 @@ export default function Dashboard() {
             <Card
               key={career.id}
               onClick={() => navigate(`/career/${career.id}/overview`)}
-              className="cursor-pointer transition-shadow hover:shadow-lg"
+              className="cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="space-y-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h2 className="text-lg font-semibold text-slate-100">
                     {career.club_name}
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {career.league_name}
-                  </p>
+                  <p className="text-sm text-slate-300">{career.league_name}</p>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Season</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="text-slate-400">Season</span>
+                  <span className="font-semibold text-slate-100">
                     {career.current_season}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Manager</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="text-slate-400">Manager</span>
+                  <span className="font-semibold text-slate-100">
                     {career.manager_name}
                   </span>
                 </div>
@@ -110,15 +108,13 @@ export default function Dashboard() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900/80 p-6 shadow-xl backdrop-blur-xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Create New Career
-              </h2>
+              <h2 className="text-xl font-semibold text-slate-100">Create New Career</h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="rounded-full px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                className="rounded-full px-2 py-1 text-slate-300 hover:bg-white/10"
               >
                 ✕
               </button>
