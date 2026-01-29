@@ -11,19 +11,21 @@ export default function Topbar() {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const { theme, toggleTheme } = useUIStore()
-  const { careers, fetchCareers, currentCareer, setActiveCareer } = useCareerStore()
+  const { careers, loadCareers, activeCareer, setActiveCareer } = useCareerStore()
   const [isCareerMenuOpen, setIsCareerMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   useEffect(() => {
-    fetchCareers()
-  }, [fetchCareers])
+    if (user) {
+      loadCareers()
+    }
+  }, [user, loadCareers])
 
   useEffect(() => {
     if (careerId) {
       const career = careers.find((c) => c.id === careerId)
       if (career) {
-        setActiveCareer(career)
+        setActiveCareer(career.id)
       }
     }
   }, [careerId, careers, setActiveCareer])
@@ -41,15 +43,15 @@ export default function Topbar() {
   return (
     <header className="sticky top-0 z-20 h-16 border-b border-white/10 bg-slate-950/40 backdrop-blur-xl flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
-        {currentCareer && (
+        {activeCareer && (
           <div className="relative">
             <button
               onClick={() => setIsCareerMenuOpen(!isCareerMenuOpen)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
             >
               <div className="text-left">
-                <div className="font-semibold text-slate-100">{currentCareer.club_name}</div>
-                <div className="text-xs text-slate-300">Season {currentCareer.current_season}</div>
+                <div className="font-semibold text-slate-100">{activeCareer.club_name}</div>
+                <div className="text-xs text-slate-300">Season {activeCareer.current_season}</div>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-300" />
             </button>

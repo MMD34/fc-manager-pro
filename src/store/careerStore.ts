@@ -1,36 +1,30 @@
 ﻿import { create } from 'zustand'
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  Timestamp,
-} from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import type { Career, CreateCareerInput, UpdateCareerInput } from '@/types/career.types'
 import { useAuthStore } from '@/store/authStore'
-import type { Career, CreateCareerInput, UpdateCareerInput, ProjectType } from '@/types/career.types'
+import {
+  listCareers,
+  createCareer as createCareerDoc,
+  updateCareer as updateCareerDoc,
+  deleteCareer as deleteCareerDoc,
+  getCareer as getCareerDoc,
+} from '@/services/firestore/careers'
 
 interface CareerState {
   careers: Career[]
+  activeCareerId: string | null
   activeCareer: Career | null
-  currentCareer: Career | null
   loading: boolean
   error: string | null
-  fetchCareers: () => Promise<void>
+  loadCareers: () => Promise<void>
   createCareer: (input: CreateCareerInput) => Promise<Career>
-  updateCareer: (id: string, input: UpdateCareerInput) => Promise<void>
+  updateCareer: (id: string, patch: UpdateCareerInput) => Promise<Career>
   deleteCareer: (id: string) => Promise<void>
-  setActiveCareer: (career: Career | null) => void
+  setActiveCareer: (id: string | null) => void
+  hydrateActiveCareer: (careers?: Career[]) => void
   fetchCareerById: (id: string) => Promise<void>
 }
 
-const DEFAULT_PROJECT_TYPE: ProjectType = 'custom'
+const ACTIVE_CAREER_KEY = 'fc_active_career_id'
 
 const getUserId = () => {
   const user = useAuthStore.getState().user
@@ -38,57 +32,20 @@ const getUserId = () => {
   return user.uid
 }
 
-const toIsoString = (value?: Timestamp | string) => {
-  if (!value) return new Date().toISOString()
-  if (value instanceof Timestamp) return value.toDate().toISOString()
-  return value
-}
-
-const normalizeCareer = (
-  id: string,
-  data: Partial<Career> & { created_at?: Timestamp | string; updated_at?: Timestamp | string },
-  uid: string
-): Career => {
-  const nowIso = new Date().toISOString()
-  return {
-    id,
-    user_id: data.user_id ?? uid,
-    club_name: data.club_name ?? 'Unknown Club',
-    club_id: data.club_id ?? null,
-    league_name: data.league_name ?? 'Unknown League',
-    country: data.country ?? 'Unknown',
-    manager_name: data.manager_name ?? 'Unknown Manager',
-    project_type: data.project_type ?? DEFAULT_PROJECT_TYPE,
-    current_season: data.current_season ?? 1,
-    budget: data.budget ?? 0,
-    difficulty: data.difficulty ?? 'Normal',
-    start_date: data.start_date ?? nowIso,
-    is_active: data.is_active ?? true,
-    is_archived: data.is_archived ?? false,
-    settings: data.settings,
-    created_at: toIsoString(data.created_at),
-    updated_at: toIsoString(data.updated_at),
-  }
-}
-
-export const useCareerStore = create<CareerState>((set) => ({
+export const useCareerStore = create<CareerState>((set, get) => ({
   careers: [],
+  activeCareerId: null,
   activeCareer: null,
-  currentCareer: null,
   loading: false,
   error: null,
 
-  fetchCareers: async () => {
+  loadCareers: async () => {
     set({ loading: true, error: null })
     try {
       const uid = getUserId()
-      const careersRef = collection(db, 'users', uid, 'careers')
-      const careersQuery = query(careersRef, orderBy('created_at', 'desc'))
-      const snapshot = await getDocs(careersQuery)
-      const careers = snapshot.docs.map((docSnap) =>
-        normalizeCareer(docSnap.id, docSnap.data() as Partial<Career>, uid)
-      )
+      const careers = await listCareers(uid)
       set({ careers, loading: false })
+      get().hydrateActiveCareer(careers)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load careers'
       set({ loading: false, error: message })
@@ -99,37 +56,12 @@ export const useCareerStore = create<CareerState>((set) => ({
     set({ loading: true, error: null })
     try {
       const uid = getUserId()
-      const nowIso = new Date().toISOString()
-      const payload = {
-        user_id: uid,
-        club_name: input.club_name,
-        league_name: input.league_name,
-        country: input.country ?? 'Unknown',
-        manager_name: input.manager_name,
-        project_type: input.project_type ?? DEFAULT_PROJECT_TYPE,
-        current_season: input.current_season ?? 1,
-        budget: input.budget ?? 0,
-        difficulty: input.difficulty ?? 'Normal',
-        start_date: nowIso,
-        is_active: true,
-        is_archived: false,
-        settings: {},
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
-      }
-
-      const docRef = await addDoc(collection(db, 'users', uid, 'careers'), payload)
-      const career = normalizeCareer(
-        docRef.id,
-        { ...payload, created_at: nowIso, updated_at: nowIso },
-        uid
-      )
-
+      const career = await createCareerDoc(uid, input)
       set((state) => ({
         careers: [career, ...state.careers],
         loading: false,
       }))
-
+      get().setActiveCareer(career.id)
       return career
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create career'
@@ -138,31 +70,19 @@ export const useCareerStore = create<CareerState>((set) => ({
     }
   },
 
-  updateCareer: async (id: string, input: UpdateCareerInput) => {
+  updateCareer: async (id: string, patch: UpdateCareerInput) => {
     set({ loading: true, error: null })
     try {
       const uid = getUserId()
-      const careerRef = doc(db, 'users', uid, 'careers', id)
-      const updatedAt = new Date().toISOString()
-      await updateDoc(careerRef, {
-        ...input,
-        updated_at: serverTimestamp(),
-      })
-
+      const updated = await updateCareerDoc(uid, id, patch)
       set((state) => ({
         careers: state.careers.map((career) =>
-          career.id === id ? { ...career, ...input, updated_at: updatedAt } : career
+          career.id === id ? updated : career
         ),
-        activeCareer:
-          state.activeCareer?.id === id
-            ? { ...state.activeCareer, ...input, updated_at: updatedAt }
-            : state.activeCareer,
-        currentCareer:
-          state.currentCareer?.id === id
-            ? { ...state.currentCareer, ...input, updated_at: updatedAt }
-            : state.currentCareer,
+        activeCareer: state.activeCareer?.id === id ? updated : state.activeCareer,
         loading: false,
       }))
+      return updated
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update career'
       set({ loading: false, error: message })
@@ -174,13 +94,14 @@ export const useCareerStore = create<CareerState>((set) => ({
     set({ loading: true, error: null })
     try {
       const uid = getUserId()
-      await deleteDoc(doc(db, 'users', uid, 'careers', id))
+      await deleteCareerDoc(uid, id)
       set((state) => ({
         careers: state.careers.filter((career) => career.id !== id),
-        activeCareer: state.activeCareer?.id === id ? null : state.activeCareer,
-        currentCareer: state.currentCareer?.id === id ? null : state.currentCareer,
         loading: false,
       }))
+      if (get().activeCareerId === id) {
+        get().setActiveCareer(null)
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete career'
       set({ loading: false, error: message })
@@ -188,21 +109,44 @@ export const useCareerStore = create<CareerState>((set) => ({
     }
   },
 
-  setActiveCareer: (career: Career | null) => {
-    set({ activeCareer: career, currentCareer: career })
+  setActiveCareer: (id: string | null) => {
+    if (id) {
+      localStorage.setItem(ACTIVE_CAREER_KEY, id)
+    } else {
+      localStorage.removeItem(ACTIVE_CAREER_KEY)
+    }
+    const career = id ? get().careers.find((item) => item.id === id) ?? null : null
+    set({ activeCareerId: id, activeCareer: career })
+  },
+
+  hydrateActiveCareer: (careers = get().careers) => {
+    const storedId = localStorage.getItem(ACTIVE_CAREER_KEY)
+    if (!storedId) {
+      set({ activeCareerId: null, activeCareer: null })
+      return
+    }
+    const career = careers.find((item) => item.id === storedId)
+    if (career) {
+      set({ activeCareerId: storedId, activeCareer: career })
+    } else {
+      localStorage.removeItem(ACTIVE_CAREER_KEY)
+      set({ activeCareerId: null, activeCareer: null })
+    }
   },
 
   fetchCareerById: async (id: string) => {
     set({ loading: true, error: null })
     try {
       const uid = getUserId()
-      const snapshot = await getDoc(doc(db, 'users', uid, 'careers', id))
-      if (!snapshot.exists()) {
-        set({ loading: false, currentCareer: null, activeCareer: null })
-        return
+      const career = await getCareerDoc(uid, id)
+      set({
+        activeCareer: career,
+        activeCareerId: career?.id ?? null,
+        loading: false,
+      })
+      if (career) {
+        localStorage.setItem(ACTIVE_CAREER_KEY, career.id)
       }
-      const career = normalizeCareer(snapshot.id, snapshot.data() as Partial<Career>, uid)
-      set({ currentCareer: career, activeCareer: career, loading: false })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load career'
       set({ loading: false, error: message })

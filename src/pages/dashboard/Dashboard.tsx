@@ -1,45 +1,78 @@
 ﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, FolderOpen } from 'lucide-react'
+import { Plus, FolderOpen, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
 import { useCareerStore } from '@/store/careerStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
 import PageHeader from '@/components/ui/PageHeader'
 import EmptyState from '@/components/ui/EmptyState'
+import CreateCareerModal from '@/components/careers/CreateCareerModal'
+import EditCareerModal from '@/components/careers/EditCareerModal'
+import ConfirmDialog from '@/components/careers/ConfirmDialog'
 import { APP_NAME } from '@/config/branding'
+import type { Career } from '@/types/career.types'
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { careers, loading, fetchCareers, createCareer } = useCareerStore()
-  const [showModal, setShowModal] = useState(false)
-  const [formData, setFormData] = useState({
-    club_name: '',
-    league_name: '',
-    manager_name: '',
-  })
+  const { user } = useAuth()
+  const {
+    careers,
+    activeCareerId,
+    loading,
+    error,
+    loadCareers,
+    createCareer,
+    updateCareer,
+    deleteCareer,
+    setActiveCareer,
+  } = useCareerStore()
+
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingCareer, setEditingCareer] = useState<Career | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Career | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    fetchCareers()
-  }, [fetchCareers])
-
-  const handleCreateCareer = async () => {
-    if (!formData.club_name || !formData.league_name || !formData.manager_name) {
-      return
+    if (user) {
+      loadCareers()
     }
-
-    const newCareer = await createCareer({
-      ...formData,
-      current_season: 1,
-      budget: 10000000,
-      difficulty: 'IntermÃ©diaire',
-    })
-
-    if (newCareer) {
-      setShowModal(false)
-      setFormData({ club_name: '', league_name: '', manager_name: '' })
-      navigate(`/career/${newCareer.id}/overview`)
+  }, [user, loadCareers])
+  const handleCreateCareer = async (input: Parameters<typeof createCareer>[0]) => {
+    setIsSubmitting(true)
+    try {
+      const career = await createCareer(input)
+      setShowCreateModal(false)
+      navigate(`/career/${career.id}/overview`)
+    } finally {
+      setIsSubmitting(false)
     }
+  }
+
+  const handleEditCareer = async (id: string, patch: Parameters<typeof updateCareer>[1]) => {
+    setIsSubmitting(true)
+    try {
+      await updateCareer(id, patch)
+      setEditingCareer(null)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteCareer = async () => {
+    if (!deleteTarget) return
+    setIsSubmitting(true)
+    try {
+      await deleteCareer(deleteTarget.id)
+      setDeleteTarget(null)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSelectCareer = (career: Career) => {
+    setActiveCareer(career.id)
+    navigate(`/career/${career.id}/overview`)
   }
 
   if (loading) {
@@ -56,12 +89,18 @@ export default function Dashboard() {
         title="My Careers"
         subtitle={`Manage your ${APP_NAME} careers`}
         actions={
-          <Button onClick={() => setShowModal(true)}>
+          <Button onClick={() => setShowCreateModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Create Career
           </Button>
         }
       />
+
+      {error && (
+        <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {error}
+        </div>
+      )}
 
       {careers.length === 0 ? (
         <EmptyState
@@ -69,7 +108,7 @@ export default function Dashboard() {
           title="No careers yet"
           description="Create your first career to start tracking seasons, squads, and transfers."
           action={
-            <Button onClick={() => setShowModal(true)}>
+            <Button onClick={() => setShowCreateModal(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create Career
             </Button>
@@ -77,82 +116,88 @@ export default function Dashboard() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {careers.map((career) => (
-            <Card
-              key={career.id}
-              onClick={() => navigate(`/career/${career.id}/overview`)}
-              className="cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg"
-            >
-              <div className="space-y-3">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-100">
-                    {career.club_name}
-                  </h2>
-                  <p className="text-sm text-slate-300">{career.league_name}</p>
+          {careers.map((career) => {
+            const isActive = activeCareerId === career.id
+            return (
+              <Card key={career.id} className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-100">
+                      {career.club_name}
+                    </h2>
+                    <p className="text-sm text-slate-300">{career.league_name}</p>
+                  </div>
+                  {isActive && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-200">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Active
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-400">Season</span>
-                  <span className="font-semibold text-slate-100">
-                    {career.current_season}
-                  </span>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Season</span>
+                    <span className="font-semibold text-slate-100">{career.current_season}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Manager</span>
+                    <span className="font-semibold text-slate-100">{career.manager_name}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-400">Manager</span>
-                  <span className="font-semibold text-slate-100">
-                    {career.manager_name}
-                  </span>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => handleSelectCareer(career)}>
+                    {isActive ? 'Open' : 'Select'}
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => setEditingCareer(career)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-300 hover:text-red-200"
+                    onClick={() => setDeleteTarget(career)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900/80 p-6 shadow-xl backdrop-blur-xl">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-slate-100">Create New Career</h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="rounded-full px-2 py-1 text-slate-300 hover:bg-white/10"
-              >
-                ✕
-              </button>
-            </div>
+      <CreateCareerModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateCareer}
+        isSubmitting={isSubmitting}
+      />
 
-            <div className="space-y-4">
-              <Input
-                label="Club Name"
-                value={formData.club_name}
-                onChange={(e) => setFormData({ ...formData, club_name: e.target.value })}
-                placeholder="e.g., Manchester United"
-              />
-              <Input
-                label="League Name"
-                value={formData.league_name}
-                onChange={(e) => setFormData({ ...formData, league_name: e.target.value })}
-                placeholder="e.g., Premier League"
-              />
-              <Input
-                label="Manager Name"
-                value={formData.manager_name}
-                onChange={(e) => setFormData({ ...formData, manager_name: e.target.value })}
-                placeholder="e.g., John Doe"
-              />
+      <EditCareerModal
+        isOpen={!!editingCareer}
+        career={editingCareer}
+        onClose={() => setEditingCareer(null)}
+        onSubmit={handleEditCareer}
+        isSubmitting={isSubmitting}
+      />
 
-              <div className="flex gap-3 pt-2">
-                <Button variant="ghost" onClick={() => setShowModal(false)} className="flex-1">
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateCareer} className="flex-1">
-                  Create
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Delete career?"
+        description="This action cannot be undone."
+        confirmLabel="Delete"
+        confirmVariant="ghost"
+        confirmClassName="text-red-300 hover:text-red-200"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteCareer}
+        icon={<Trash2 className="h-5 w-5" />}
+      />
     </div>
   )
 }
+
+

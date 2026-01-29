@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+﻿import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useCareerStore } from '@/store/careerStore'
 import { usePlayerStore } from '@/store/playerStore'
@@ -7,7 +7,7 @@ import { Users, TrendingUp, Star, Award } from 'lucide-react'
 
 export default function CareerOverview() {
   const { careerId } = useParams()
-  const { currentCareer, fetchCareerById } = useCareerStore()
+  const { activeCareer, fetchCareerById } = useCareerStore()
   const { players, fetchPlayers } = usePlayerStore()
 
   useEffect(() => {
@@ -17,10 +17,9 @@ export default function CareerOverview() {
     }
   }, [careerId, fetchCareerById, fetchPlayers])
 
-  // Calculate KPIs
   const kpis = useMemo(() => {
     const totalPlayers = players.length
-    const academyPlayers = players.filter((p) => p.origin === 'Académie').length
+    const academyPlayers = players.filter((p) => p.origin === 'AcadÃ©mie').length
     const academyPercentage = totalPlayers > 0 ? Math.round((academyPlayers / totalPlayers) * 100) : 0
 
     const averageOVR = totalPlayers > 0
@@ -43,15 +42,14 @@ export default function CareerOverview() {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {currentCareer?.club_name || 'Career Overview'}
+          {activeCareer?.club_name || 'Career Overview'}
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Season {currentCareer?.current_season || 1} • {currentCareer?.league_name || ''}
+          Season {activeCareer?.current_season || 1} â€¢ {activeCareer?.league_name || ''}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Total Players */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -70,7 +68,6 @@ export default function CareerOverview() {
           </CardContent>
         </Card>
 
-        {/* Academy Players */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -89,7 +86,6 @@ export default function CareerOverview() {
           </CardContent>
         </Card>
 
-        {/* Average OVR */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -108,7 +104,6 @@ export default function CareerOverview() {
           </CardContent>
         </Card>
 
-        {/* Players with 7+ Play Styles */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -128,7 +123,6 @@ export default function CareerOverview() {
         </Card>
       </div>
 
-      {/* Squad Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -136,7 +130,7 @@ export default function CareerOverview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {['Titulaire', 'Remplaçant', 'Réserve', 'À vendre', 'Prêt'].map((status) => {
+              {['Titulaire', 'RemplaÃ§ant', 'RÃ©serve', 'Ã€ vendre', 'PrÃªt'].map((status) => {
                 const count = players.filter((p) => p.status === status).length
                 const percentage = kpis.totalPlayers > 0
                   ? Math.round((count / kpis.totalPlayers) * 100)
@@ -171,7 +165,7 @@ export default function CareerOverview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {['Académie', 'Initial', 'Acheté'].map((origin) => {
+              {['AcadÃ©mie', 'Initial', 'AchetÃ©'].map((origin) => {
                 const count = players.filter((p) => p.origin === origin).length
                 const percentage = kpis.totalPlayers > 0
                   ? Math.round((count / kpis.totalPlayers) * 100)
